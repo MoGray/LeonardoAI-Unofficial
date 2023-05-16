@@ -24,7 +24,7 @@ namespace Leonardo.InitImage
             if (file == null)
                 throw  new FileNotFoundException("File is Empty");
             if (Utilities.ValidateExtension(extension))
-                throw new InvalidDataException("Extension must be in one of these formats, \"png\", \"jpg\", \"jpeg\", \"webp\"");
+                throw new InvalidDataException("Extension must be in one of these mime types, \"png\", \"jpg\", \"jpeg\", \"webp\"");
             var imageRequest = new UploadInitImageRequest(extension);
             var uploadImageResponse = await HttpPost<UploadInitImageResponse>(postData: imageRequest);
             
@@ -36,11 +36,9 @@ namespace Leonardo.InitImage
             extension = Utilities.TrimPeriodFromExtensions(extension);
 
             if (!Utilities.ValidateExtension(extension))
-                throw new InvalidDataException("Extension must be in one of these formats, \"png\", \"jpg\", \"jpeg\", \"webp\"");
+                throw new InvalidDataException("Extension must be in one of these mime types, \"png\", \"jpg\", \"jpeg\", \"webp\"");
             var imageRequest = new UploadInitImageRequest(extension);
             var uploadImageResponse = await HttpPost<UploadInitImageResponse>(postData: imageRequest);
-            var fieldsJson = JsonConvert.DeserializeObject<ExpandoObject>(uploadImageResponse.UploadInitImage.Fields);
-            var fieldsString = fieldsJson.ToString();
             var fields = uploadImageResponse.UploadInitImage.Fields;
             var url = uploadImageResponse.UploadInitImage.Url;
             try
@@ -51,17 +49,16 @@ namespace Leonardo.InitImage
                     {
                         var streamContent = new StreamContent(fileStream);
                         form.Add(streamContent, "file", @"Sword.jpg");
-                        var fieldsContent = new StringContent(fields, Encoding.UTF8);
+                        var fieldsContent = new StringContent(fields);
                         form.Add(fieldsContent, "fields");
 
-                        var postResponse = await HttpPost<object>(url, form, false);
-                        //return postResponse;
+                        await HttpPost<object>(url, form, false);
                     }
                 }
             }
             catch(Exception ex)
             {
-                var testc = ex;
+                throw new Exception("Error uploading image to server with message: " + ex.Message, ex);
             }
             return uploadImageResponse;
         }
