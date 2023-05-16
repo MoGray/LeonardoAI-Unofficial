@@ -43,18 +43,28 @@ namespace Leonardo.InitImage
             var url = uploadImageResponse.UploadInitImage.Url;
             try
             {
+                /*
                 using (var form = new MultipartFormDataContent())
                 {
                     using (var fileStream = File.OpenRead(@"E:\Downloads\Sword.jpg"))
                     {
                         var streamContent = new StreamContent(fileStream);
-                        form.Add(streamContent, "file", @"Sword.jpg");
+                        form.Add(streamContent, "file", "Sword.jpg");
                         var fieldsContent = new StringContent(fields);
                         form.Add(fieldsContent, "fields");
 
                         await HttpPost<object>(url, form, false);
                     }
                 }
+                */
+                var content = new MultipartFormDataContent
+                {
+                    { new StringContent(fields), "fields" },
+                    { new ByteArrayContent(System.IO.File.ReadAllBytes(@"E:\Downloads\Sword.jpg")), "file", Path.GetFileName(@"E:\Downloads\Sword.jpg") }
+                };
+
+                await HttpPost<object>(url, content, false);
+
             }
             catch(Exception ex)
             {
