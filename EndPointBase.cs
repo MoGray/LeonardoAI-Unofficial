@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 using System;
 using System.Net.Http.Headers;
 using System.Threading;
+using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
+using System.IO;
+using Leonardo.GenericModels;
 
 namespace Leonardo
 {
@@ -152,6 +156,35 @@ namespace Leonardo
                 {
                     throw new HttpRequestException(GetErrorMessage(resultAsString, response, Endpoint, url));
                 }
+            }
+        }
+
+        internal async Task UploadImage(ImageUpload imageUpload)
+        {
+            try
+            {
+                // If fileName does not have extension, add it.
+                if (!Utilities.CheckIfImageFormat(imageUpload.FileName) && !String.IsNullOrEmpty(imageUpload.FileName))
+                {
+                    imageUpload.FileName = $"{imageUpload.FileName}.{imageUpload.Extension}";
+                }
+
+                var fieldsJson = JsonConvert.DeserializeObject<Dictionary<string, string>>(imageUpload.Fields);
+
+                var formData = new MultipartFormDataContent();
+
+                foreach (var entry in fieldsJson)
+                {
+                    formData.Add(new StringContent(entry.Value), entry.Key);
+                }
+
+                formData.Add(new StreamContent(imageUpload.Stream), "file", String.IsNullOrEmpty(imageUpload.FileName) ? $"{Utilities.GenerateGuidString()}.{imageUpload.Extension}" : imageUpload.FileName);
+                await HttpPost<object>(imageUpload.Url, formData, false);
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error uploading image to server with message: " + ex.Message, ex);
             }
         }
 

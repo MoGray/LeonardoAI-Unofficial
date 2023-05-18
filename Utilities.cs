@@ -1,5 +1,6 @@
 ﻿
 
+using System;
 using System.Linq;
 
 namespace Leonardo
@@ -20,6 +21,19 @@ namespace Leonardo
             }
 
             return extension;
+        }
+
+        internal static bool CheckIfImageFormat(string filename)
+        {
+            return filename.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                   filename.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                   filename.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                   filename.EndsWith(".webp", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static string GenerateGuidString()
+        {
+            return Guid.NewGuid().ToString();
         }
     }
 }

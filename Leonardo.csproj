@@ -14,9 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Dataset\Interfaces\" />
-    <Folder Include="Model\Interfaces\" />
-    <Folder Include="Variation\" />
+    <Folder Include="Extensions\" />
+    <Folder Include="Model\" />
   </ItemGroup>
 
 </Project>

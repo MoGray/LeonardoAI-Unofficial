@@ -113,25 +113,31 @@ namespace Leonardo.Generation.Models
 
         public bool Validate()
         {
-            var height = new Spec<CreateGenerationRequest>(gen => gen.Height >= 32 && gen.Height <= 1024 && gen.Height % 8 == 0);
-            var width = new Spec<CreateGenerationRequest>(gen => gen.Width >= 32 && gen.Width <= 1024 && gen.Width % 8 == 0);
-            var numImages = new Spec<CreateGenerationRequest>(gen => gen.NumImages >= 1 && gen.NumImages <= 8);
-            var imageNumberAndSize = new Spec<CreateGenerationRequest>(gen => (gen.NumImages > 4 && gen.Height <= 768 && gen.Width <= 768) || (gen.NumImages <= 4 && gen.Height <= 1024 && gen.Width <= 1024));
-            var initStrength = new Spec<CreateGenerationRequest>(gen => gen.InitStrength == null || (gen.InitStrength >= 0.1f && gen.InitStrength <= 0.9f));
-            var controlNet = new Spec<CreateGenerationRequest>(gen => gen.ControlNet == null || gen.ControlNet == false || (gen.ControlNet == true && gen.InitImageId != null));
+            var heightSpec = new Spec<CreateGenerationRequest>(gen => gen.Height >= 32 && gen.Height <= 1024 && gen.Height % 8 == 0);
+            var widthSpec = new Spec<CreateGenerationRequest>(gen => gen.Width >= 32 && gen.Width <= 1024 && gen.Width % 8 == 0);
+            var numImagesSpec = new Spec<CreateGenerationRequest>(gen => gen.NumImages >= 1 && gen.NumImages <= 8);
+            var imageNumberAndSizeSpec = new Spec<CreateGenerationRequest>(gen => (gen.NumImages > 4 && gen.Height <= 768 && gen.Width <= 768) || (gen.NumImages <= 4 && gen.Height <= 1024 && gen.Width <= 1024));
+            var initStrengthSpec = new Spec<CreateGenerationRequest>(gen => gen.InitStrength == null || (gen.InitStrength >= 0.1f && gen.InitStrength <= 0.9f));
+            var controlNetSpec = new Spec<CreateGenerationRequest>(gen => gen.ControlNet == null || gen.ControlNet == false || (gen.ControlNet == true && gen.InitImageId != null));
+            var promptSpec = new Spec<CreateGenerationRequest>(gen => gen.Prompt.Length <= 1000 );
+            var negativePromptSpec = new Spec<CreateGenerationRequest>(gen => gen.NegativePrompt == null || gen.NegativePrompt.Length <= 1000);
 
-            if (!height.IsSatisfiedBy(this))
+            if (!heightSpec.IsSatisfiedBy(this))
                 throw new ArgumentOutOfRangeException("The height is either less than 32px, greater than 1024px or an image height not divisible by 8");
-            if (!width.IsSatisfiedBy(this))
+            if (!widthSpec.IsSatisfiedBy(this))
                 throw new ArgumentOutOfRangeException("The width is either less than 32px, greater than 1024px or an image width not divisible by 8");
-            if (!numImages.IsSatisfiedBy(this))
+            if (!numImagesSpec.IsSatisfiedBy(this))
                 throw new ArgumentOutOfRangeException("You must select the amount of images to run between 1 image to 8 images");
-            if (!imageNumberAndSize.IsSatisfiedBy(this))
+            if (!imageNumberAndSizeSpec.IsSatisfiedBy(this))
                 throw new ArgumentOutOfRangeException("If you are running more than 4 images the height and width maximum size is 768px");
-            if (!initStrength.IsSatisfiedBy(this))
+            if (!initStrengthSpec.IsSatisfiedBy(this))
                 throw new ArgumentOutOfRangeException("If you supply an init strength it must be a float between 0.1 and 0.9");
-            if (!controlNet.IsSatisfiedBy(this))
+            if (!controlNetSpec.IsSatisfiedBy(this))
                 throw new ArgumentException("If you select to use ControlNet you must submit an initialized image");
+            if (!promptSpec.IsSatisfiedBy(this))
+                throw new ArgumentException("Prompt must be less than or equal to 1000 characters");
+            if (!negativePromptSpec.IsSatisfiedBy(this))
+                throw new ArgumentException("NegativePrompt must be less than or equal to 1000 characters");
 
             return true;
         }

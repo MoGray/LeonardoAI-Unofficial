@@ -1,13 +1,8 @@
 ﻿
 using Leonardo.InitImage.Interfaces;
 using Leonardo.InitImage.Models;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Dynamic;
+using Leonardo.GenericModels;
 using System.IO;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Leonardo.InitImage
@@ -17,7 +12,7 @@ namespace Leonardo.InitImage
         protected override string Endpoint { get { return "init-image"; } }
         internal InitImageEndPoint(LeonardoAPI Api) : base(Api) { }
 
-        public async Task<bool> InitializeImage(Stream file, string extension)
+        public async Task<string> InitializeImage(Stream file, string extension, string fileName = null)
         {
             extension = Utilities.TrimPeriodFromExtensions(extension);
 
@@ -27,50 +22,28 @@ namespace Leonardo.InitImage
                 throw new InvalidDataException("Extension must be in one of these mime types, \"png\", \"jpg\", \"jpeg\", \"webp\"");
             var imageRequest = new UploadInitImageRequest(extension);
             var uploadImageResponse = await HttpPost<UploadInitImageResponse>(postData: imageRequest);
-            
-            return true;
+            var imageUpload = new ImageUpload()
+            {
+                Stream = file,
+                Fields = uploadImageResponse.UploadInitImage.Fields,
+                FileName = fileName,
+                Extension = extension,
+                Url = uploadImageResponse.UploadInitImage.Url
+            };
+            await UploadImage(imageUpload);
+            return uploadImageResponse.UploadInitImage.Id;
         }
 
-        public async Task<UploadInitImageResponse> InitializeImage(string extension)
+        public async Task<GetInitImage> GetInitImage(string id)
         {
-            extension = Utilities.TrimPeriodFromExtensions(extension);
+            var response = await HttpGet<GetInitImageResponse>($"{this.Url}/{id}");
+            return response.GetInitImage;
+        }
 
-            if (!Utilities.ValidateExtension(extension))
-                throw new InvalidDataException("Extension must be in one of these mime types, \"png\", \"jpg\", \"jpeg\", \"webp\"");
-            var imageRequest = new UploadInitImageRequest(extension);
-            var uploadImageResponse = await HttpPost<UploadInitImageResponse>(postData: imageRequest);
-            var fields = uploadImageResponse.UploadInitImage.Fields;
-            var url = uploadImageResponse.UploadInitImage.Url;
-            try
-            {
-                /*
-                using (var form = new MultipartFormDataContent())
-                {
-                    using (var fileStream = File.OpenRead(@"E:\Downloads\Sword.jpg"))
-                    {
-                        var streamContent = new StreamContent(fileStream);
-                        form.Add(streamContent, "file", "Sword.jpg");
-                        var fieldsContent = new StringContent(fields);
-                        form.Add(fieldsContent, "fields");
-
-                        await HttpPost<object>(url, form, false);
-                    }
-                }
-                */
-                var content = new MultipartFormDataContent
-                {
-                    { new StringContent(fields), "fields" },
-                    { new ByteArrayContent(System.IO.File.ReadAllBytes(@"E:\Downloads\Sword.jpg")), "file", Path.GetFileName(@"E:\Downloads\Sword.jpg") }
-                };
-
-                await HttpPost<object>(url, content, false);
-
-            }
-            catch(Exception ex)
-            {
-                throw new Exception("Error uploading image to server with message: " + ex.Message, ex);
-            }
-            return uploadImageResponse;
+        public async Task<string> DeleteInitImage(string id)
+        {
+            var response = await HttpDelete<DeleteInitImageResponse>($"{this.Url}/{id}");
+            return response.DeleteInitImage.Id;
         }
     }
 }

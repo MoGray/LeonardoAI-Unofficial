@@ -1,9 +1,15 @@
-﻿using Leonardo.Generation;
+﻿using Leonardo.Dataset;
+using Leonardo.Dataset.Interfaces;
+using Leonardo.Generation;
 using Leonardo.Generation.Interfaces;
 using Leonardo.InitImage;
 using Leonardo.InitImage.Interfaces;
+using Leonardo.Model;
+using Leonardo.Model.Interfaces;
 using Leonardo.User;
 using Leonardo.User.Interfaces;
+using Leonardo.Variation;
+using Leonardo.Variation.Interfaces;
 using System.Net.Http;
 using System.Security.Authentication;
 
@@ -43,6 +49,12 @@ namespace Leonardo
 
         public IInitImageEndPoint InitImage { get; }
 
+        public IVariationEndPoint Variation { get; }
+
+        public IDatasetEndPoint Dataset { get; }
+
+        public IModelEndPoint Model { get; }
+
         /// <summary>
         /// Creates a new client for the Leonardo API, handling auth and allowing for access to various API endpoints.
         /// </summary>
@@ -62,6 +74,9 @@ namespace Leonardo
             Generate = new GenerationEndPoint(this);
             User = new UserEndPoint(this);
             InitImage = new InitImageEndPoint(this);
+            Variation = new VariationEndPoint(this);
+            Dataset = new DatasetEndPoint(this);
+            Model = new ModelEndPoint(this);
         }
     }
 }
